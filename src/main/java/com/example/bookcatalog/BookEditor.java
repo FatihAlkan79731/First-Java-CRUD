@@ -8,6 +8,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -24,97 +25,106 @@ import com.vaadin.flow.spring.annotation.UIScope;
 @UIScope
 public class BookEditor extends VerticalLayout implements KeyNotifier {
 
-	static final List<String> GENRES = List.of("Novel", "Poetry", "Science Fiction",
-			"Fantasy", "Horror", "Drama", "History", "Biography", "Other");
+    static final List<String> GENRES = List.of("Novel", "Poetry", "Science Fiction",
+            "Fantasy", "Horror", "Drama", "History", "Biography", "Other");
 
-	private final BookRepository repository;
+    private final BookRepository repository;
 
-	/** The book currently being edited. */
-	private Book book;
+    /** The book currently being edited. */
+    private Book book;
 
-	/* Fields bound to the properties of the Book entity */
-	TextField title = new TextField("Title");
-	TextField author = new TextField("Author");
-	ComboBox<String> genre = new ComboBox<>("Genre");
-	IntegerField publicationYear = new IntegerField("Publication year");
+    /* Fields bound to the properties of the Book entity */
+    TextField title = new TextField("Title");
+    TextField author = new TextField("Author");
+    ComboBox<String> genre = new ComboBox<>("Genre");
+    IntegerField publicationYear = new IntegerField("Publication year");
 
-	/* Action buttons */
-	Button save = new Button("Save", VaadinIcon.CHECK.create());
-	Button cancel = new Button("Cancel");
-	Button delete = new Button("Delete", VaadinIcon.TRASH.create());
-	HorizontalLayout actions = new HorizontalLayout(save, cancel, delete);
+    /* Action buttons */
+    Button save = new Button("Save", VaadinIcon.CHECK.create());
+    Button cancel = new Button("Cancel");
+    Button delete = new Button("Delete", VaadinIcon.TRASH.create());
+    HorizontalLayout actions = new HorizontalLayout(save, cancel, delete);
 
-	Binder<Book> binder = new Binder<>(Book.class);
-	private ChangeHandler changeHandler;
+    Binder<Book> binder = new Binder<>(Book.class);
+    private ChangeHandler changeHandler;
 
-	public BookEditor(BookRepository repository) {
-		this.repository = repository;
+    public BookEditor(BookRepository repository) {
+        this.repository = repository;
 
-		genre.setItems(GENRES);
-		publicationYear.setMin(0);
-		publicationYear.setMax(2100);
+        genre.setItems(GENRES);
+        publicationYear.setMin(0);
+        publicationYear.setMax(2100);
 
-		FormLayout fields = new FormLayout(title, author, genre, publicationYear);
-		add(fields, actions);
+        H3 formTitle = new H3("Book details");
+        formTitle.getStyle().set("margin", "0").set("color", "#1e3a8a");
+        FormLayout fields = new FormLayout(title, author, genre, publicationYear);
+        add(formTitle, fields, actions);
 
-		// Title and author are required, the other fields are bound by naming convention
-		binder.forField(title).asRequired("Title is required").bind(Book::getTitle, Book::setTitle);
-		binder.forField(author).asRequired("Author is required").bind(Book::getAuthor, Book::setAuthor);
-		binder.bindInstanceFields(this);
+        // card style for the form
+        getStyle()
+            .set("background", "#f8fafc")
+            .set("border", "1px solid #e2e8f0")
+            .set("border-radius", "12px")
+            .set("padding", "20px");
 
-		setSpacing(true);
-		save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-		delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        // Title and author are required, the other fields are bound by naming convention
+        binder.forField(title).asRequired("Title is required").bind(Book::getTitle, Book::setTitle);
+        binder.forField(author).asRequired("Author is required").bind(Book::getAuthor, Book::setAuthor);
+        binder.bindInstanceFields(this);
 
-		addKeyPressListener(Key.ENTER, e -> save());
+        setSpacing(true);
+        save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
-		save.addClickListener(e -> save());
-		delete.addClickListener(e -> delete());
-		cancel.addClickListener(e -> editBook(null));
-		setVisible(false);
-	}
+        addKeyPressListener(Key.ENTER, e -> save());
 
-	void delete() {
-		repository.delete(book);
-		changeHandler.onChange();
-	}
+        save.addClickListener(e -> save());
+        delete.addClickListener(e -> delete());
+        cancel.addClickListener(e -> editBook(null));
+        setVisible(false);
+    }
 
-	void save() {
-		if (!binder.validate().isOk()) {
-			return;
-		}
-		repository.save(book);
-		changeHandler.onChange();
-	}
+    void delete() {
+        repository.delete(book);
+        changeHandler.onChange();
+    }
 
-	public interface ChangeHandler {
-		void onChange();
-	}
+    void save() {
+        if (!binder.validate().isOk()) {
+            return;
+        }
+        repository.save(book);
+        changeHandler.onChange();
+    }
 
-	public final void editBook(Book b) {
-		if (b == null) {
-			setVisible(false);
-			return;
-		}
-		final boolean persisted = b.getId() != null;
-		if (persisted) {
-			// Load a fresh copy of the entity from the database
-			book = repository.findById(b.getId()).get();
-		}
-		else {
-			book = b;
-		}
-		// Only already saved books can be deleted
-		delete.setVisible(persisted);
+    public interface ChangeHandler {
+        void onChange();
+    }
 
-		binder.setBean(book);
+    public final void editBook(Book b) {
+        if (b == null) {
+            setVisible(false);
+            return;
+        }
+        final boolean persisted = b.getId() != null;
+        if (persisted) {
+            // Load a fresh copy of the entity from the database
+            book = repository.findById(b.getId()).get();
+        }
+        else {
+            book = b;
+        }
+        // Only already saved books can be deleted
+        delete.setVisible(persisted);
 
-		setVisible(true);
-		title.focus();
-	}
+        binder.setBean(book);
 
-	public void setChangeHandler(ChangeHandler h) {
-		changeHandler = h;
-	}
+        setVisible(true);
+        title.focus();
+    }
+
+    public void setChangeHandler(ChangeHandler h) {
+        changeHandler = h;
+    }
 
 }
