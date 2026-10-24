@@ -73,3 +73,10 @@ Screenshots are stored in the [`doc`](doc) directory:
 - example CRUD operations,
 - the startup logs in the console,
 - the GitHub commit history with commits from me and my partner.
+
+## Contributors
+
+- Fatih Alkan (79731) - author of the project
+- Helin Gulec (79879) - reviewed the project and improved the documentation
+
+- 
