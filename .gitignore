@@ -1,0 +1,28 @@
+# Build output
+target/
+bin/
+build/
+
+# Node / Vaadin generated frontend files
+node_modules/
+src/main/frontend/generated/
+src/main/bundles/
+package.json
+package-lock.json
+pnpm-lock.yaml
+tsconfig.json
+types.d.ts
+vite.config.ts
+vite.generated.ts
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
